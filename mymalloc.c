@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <sys/syscall.h>
 #include <stdio.h>
+#include <string.h>
 
 #define SYS_mmap 197
 
@@ -18,38 +19,35 @@ ALL = architectures supported.
 int main(){
     char content[100];
     printf("Enter something meaningful (or not) to be stored in memory: ");
-    scanf("%s", content);
-
+    scanf("%s", content);   
+    int sizeM;
     printf("Enter the length (in bytes) of the desired memory partition:\n");
-    size_t size =  24 + strlen(content);
+    scanf("%d", &sizeM);
+    size_t size =  (size_t) sizeM + strlen(content);
     int prot = 0x1 | 0x2;
     int flags = -1;
     int fd = -1;
     int offset = 0;
     mallocAndPrint(size, prot, flags, fd, offset, content);
 
-
+return 0;
 
 }
 
 
 void *mallocAndPrint(size_t myLength, int prot, int flags, int fileDescriptor, int myOffset, char *message){
 
-void *ptr =  (void *) syscall(197,NULL, myLength,prot, flags, fileDescriptor, myOffset); //used syscal 197 to allocate enough memory for string inputted by user
-char hMessage[] = "Hello from Memory!\n";
-char *tptr = (char *)ptr;
-int hLen = strlen(hMessage);
-int mLen = strlen(message);
-for (int i = 0; i < hLen; i++) {
-    tptr[i] = hMessage[i];
-}
-for (int i = 0; i < mLen; i++) {
-    tptr[hLen + i] = message[i];
-}
-tptr[hLen + mLen] = '\0';
+long result = syscall(197,NULL, myLength ,prot, flags, fileDescriptor, myOffset); //used syscal 197 to allocate enough memory for string inputted by user
+void *ptr = (void *) result;
+if (ptr == (void *)-1) {
+        perror("syscall mmap failed");
+        return NULL;
+    }
+const char hMessage[20] = "Hello from Memory!\n";
 
 
-printf("%s", tptr);
+return 0;
+
 }
 
 
